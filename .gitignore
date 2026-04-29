@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.codex
+
+# Experimental simulation outputs (재생성 가능)
+outputs/
+results/
+*.parquet
+
+# Downloaded model artifacts are large; commit small MLIR/CSV artifacts selectively.
+models/**/*.bin
+models/**/*.safetensors
+models/**/*.h5
+models/**/*.ckpt
+models/**/*.onnx
+models/hf_onnx_mlir/
+models/hf_cache/
+
+# Regenerable MLIR artifacts (iree-opt 재생성 비용 낮음)
+mlir/tiled_outputs/
+
+# Build / lock artifacts
+requirements.lock
+
+# Editor / OS
+.DS_Store
+*.swp
+.vscode/
+
+# Jupyter
+.ipynb_checkpoints/
+
+plan/

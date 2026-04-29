@@ -1,0 +1,8 @@
+# Optional dependencies for HuggingFace/ONNX conversion helpers.
+# These are intentionally separate because torch/transformers are heavy and
+# are not needed for the core SCALE-Sim smoke tests.
+
+torch>=2.3.0
+transformers>=4.40.0
+safetensors>=0.4.0
+onnx>=1.16.0
