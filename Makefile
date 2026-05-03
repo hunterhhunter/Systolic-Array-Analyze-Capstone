@@ -1,9 +1,10 @@
 # npu-capston Makefile — Phase 3 뼈대.
 # Phase 3 후반(mlir2scalesim.py, pytest)에 test/demo 타겟이 실체 동작.
 
-PY   := .venv/bin/python
+VENV ?= .venv
+PY   := $(VENV)/bin/python
 UV   := uv
-IREE_OPT ?= .venv/bin/iree-opt
+IREE_OPT ?= $(VENV)/bin/iree-opt
 export IREE_OPT
 MODEL_MLIR ?= mlir/inputs/matmul_small.mlir
 KIND ?= matmul
@@ -42,7 +43,7 @@ help:
 	@echo "  experiment - Run tile -> emit-topology -> run-exp"
 
 env:
-	test -d .venv || $(UV) venv .venv --python 3.12
+	test -d $(PY) || $(UV) venv $(VENV) --python 3.12
 	$(UV) pip install --python $(PY) -r requirements-dev.txt
 	$(UV) pip install --python $(PY) -e ./SCALE-Sim
 

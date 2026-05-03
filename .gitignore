@@ -35,3 +35,6 @@ requirements.lock
 .ipynb_checkpoints/
 
 plan/
+
+# Intelij
+.idea
