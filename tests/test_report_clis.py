@@ -1,19 +1,12 @@
 """Standalone report aggregation/reuse CLIs."""
 
-from pathlib import Path
-
 from tools.aggregator import summarize_compute_report
 from tools.reuse_runner import build_reuse_dataframe
 
-REPO = Path(__file__).resolve().parent.parent
-WALKING_REPORT = (
-    REPO / "outputs" / "walking_skeleton_full" / "walking_8x8_ws" / "COMPUTE_REPORT.csv"
-)
 
-
-def test_summarize_compute_report_is_topology_agnostic():
+def test_summarize_compute_report_is_topology_agnostic(walking_compute_report):
     row = summarize_compute_report(
-        WALKING_REPORT,
+        walking_compute_report,
         dataflow="ws",
         workload="walking",
         arch="8x8_ws",
@@ -26,8 +19,8 @@ def test_summarize_compute_report_is_topology_agnostic():
     assert row["stall"] == 0
 
 
-def test_reuse_runner_builds_per_tile_dataframe():
-    df = build_reuse_dataframe(WALKING_REPORT, dataflow="ws")
+def test_reuse_runner_builds_per_tile_dataframe(walking_compute_report):
+    df = build_reuse_dataframe(walking_compute_report, dataflow="ws")
     assert len(df) == 128
     assert list(df.columns) == [
         "layer_id",

@@ -53,13 +53,8 @@ def test_column1_is_prefetch_plus_column2_is_compute(tmp_path):
     assert r.total_cycles_incl_prefetch - r.total_cycles_compute == 73
 
 
-def test_walking_skeleton_full_parses_128_rows():
-    repo = Path(__file__).resolve().parent.parent
-    csv_path = (
-        repo / "outputs" / "walking_skeleton_full" / "walking_8x8_ws"
-        / "COMPUTE_REPORT.csv"
-    )
-    recs = parse_compute_report(csv_path)
+def test_walking_skeleton_full_parses_128_rows(walking_compute_report):
+    recs = parse_compute_report(walking_compute_report)
     assert len(recs) == 128
     assert all(r.total_cycles_incl_prefetch == 102 for r in recs)
     assert all(r.total_cycles_compute == 29 for r in recs)

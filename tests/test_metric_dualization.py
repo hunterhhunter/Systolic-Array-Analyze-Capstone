@@ -5,22 +5,14 @@ aggregator.aggregate(kind=...) 가 같은 입력에 대해 두 metric을 절대 
 walking_skeleton 합산 oracle (3,712 / 13,056) 로 lock.
 """
 
-from pathlib import Path
-
 import pytest
 
 from tools.aggregator import aggregate, parse_compute_report, reuse_correction
 
 
 @pytest.fixture(scope="module")
-def walking_records():
-    repo = Path(__file__).resolve().parent.parent
-    csv_path = (
-        repo / "outputs" / "walking_skeleton_full" / "walking_8x8_ws"
-        / "COMPUTE_REPORT.csv"
-    )
-    return parse_compute_report(csv_path)
-
+def walking_records(walking_compute_report):
+    return parse_compute_report(walking_compute_report)
 
 def test_walking_compute_sum_is_3712(walking_records):
     out = aggregate(walking_records, metric_kind="compute")
