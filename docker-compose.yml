@@ -1,0 +1,15 @@
+services:
+  dev:
+    build: .
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - venv:/opt/venv
+    environment:
+      - PYTHONUNBUFFERED=1
+      - VENV=/opt/venv
+    stdin_open: true
+    tty: true
+
+volumes:
+  venv:
