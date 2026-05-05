@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.model
+
 """IREE-based ResNet/Conv tiling helpers."""
 
 from pathlib import Path

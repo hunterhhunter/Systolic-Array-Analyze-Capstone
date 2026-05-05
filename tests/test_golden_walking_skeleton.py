@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.e2e
+
 """Walking skeleton golden regression (plan §4 Phase 3 gate).
 
 Locks the three parser paths (IR / regex / auto) against the committed golden CSV

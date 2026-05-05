@@ -39,6 +39,20 @@ _REGEX_LINALG_MATMUL_RE = re.compile(
 )
 
 
+def _ceil_loop_count(lb: int, ub: int, step: int) -> int:
+    """Return the exact scf.for iteration count for constant positive steps.
+
+    scf.for executes lb, lb+step, ... while the induction variable is < ub.
+    This is ceil((ub - lb) / step), clamped at zero for empty ranges.
+    """
+    if step <= 0:
+        raise ValueError(f"non-positive scf.for step: {step}")
+    extent = ub - lb
+    if extent <= 0:
+        return 0
+    return (extent + step - 1) // step
+
+
 def _build(tile: TileShape, loop_counts: list[int]) -> TiledMatmul:
     if not loop_counts:
         raise ValueError("no scf.for loops found — input may not be a tiled matmul")
@@ -86,9 +100,7 @@ def _parse_via_ir(text: str) -> TiledMatmul:
                     f"scf.for bound not an index arith.constant: {missing}"
                 )
             lb, ub, step = (const_by_op[o] for o in owners)
-            if step <= 0:
-                raise ValueError(f"non-positive scf.for step: {step}")
-            loop_counts.append((ub - lb) // step)
+            loop_counts.append(_ceil_loop_count(lb, ub, step))
 
         mm = matmuls[0]
         a = list(RankedTensorType(mm.operands[0].type).shape)
@@ -111,9 +123,7 @@ def _parse_via_regex(text: str) -> TiledMatmul:
     loop_counts: list[int] = []
     for lb, ub, step in _REGEX_SCF_FOR_RE.findall(text):
         lb_v, ub_v, step_v = consts[lb], consts[ub], consts[step]
-        if step_v <= 0:
-            raise ValueError(f"non-positive step {step_v} in scf.for")
-        loop_counts.append((ub_v - lb_v) // step_v)
+        loop_counts.append(_ceil_loop_count(lb_v, ub_v, step_v))
 
     mm = _REGEX_LINALG_MATMUL_RE.search(text)
     if not mm:

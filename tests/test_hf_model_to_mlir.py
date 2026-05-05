@@ -6,6 +6,8 @@ import csv
 
 import pytest
 
+pytestmark = pytest.mark.model
+
 from tools.hf_model_to_mlir import (
     LayerRecord,
     _conv_effective_input_hw,

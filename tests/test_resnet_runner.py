@@ -1,3 +1,7 @@
+import pytest
+
+pytestmark = pytest.mark.model
+
 """ResNet baseline runner helpers."""
 
 from pathlib import Path

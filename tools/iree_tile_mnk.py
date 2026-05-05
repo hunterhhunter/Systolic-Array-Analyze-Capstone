@@ -116,10 +116,18 @@ module attributes {{ transform.with_named_sequence }} {{
 """
 
 
-def run_iree_transform(input_mlir: Path, tiled_mlir: Path, iree_opt: Path = IREE_OPT) -> None:
+def run_iree_transform(
+    input_mlir: Path,
+    tiled_mlir: Path,
+    iree_opt: Path = IREE_OPT,
+    *,
+    stdout=None,
+    stderr=None,
+) -> None:
     if not iree_opt.exists():
         raise FileNotFoundError(
-            f"IREE_OPT={iree_opt} not found. Run `make env` or set IREE_OPT=/path/to/iree-opt."
+            f"IREE_OPT={iree_opt} not found. Run inside the Docker dev container, run `make env`, "
+            "or set IREE_OPT=/path/to/iree-opt."
         )
     tiled_mlir.parent.mkdir(parents=True, exist_ok=True)
     subprocess.run(
@@ -131,10 +139,12 @@ def run_iree_transform(input_mlir: Path, tiled_mlir: Path, iree_opt: Path = IREE
             str(tiled_mlir),
         ],
         check=True,
+        stdout=stdout,
+        stderr=stderr,
     )
 
 
-def tiles_to_gemm_csv_from_spec(spec: MnkTileSpec) -> str:
+def tiles_to_gemm_csv_from_spec(spec: MnkTileSpec, *, max_tiles: int | None = None) -> str:
     validate_spec(spec)
     lines = ["Layer Name, M, N, K,"]
     idx = 0
@@ -143,16 +153,18 @@ def tiles_to_gemm_csv_from_spec(spec: MnkTileSpec) -> str:
         for n0 in range(0, spec.n, spec.tile_n):
             n = min(spec.tile_n, spec.n - n0)
             for k0 in range(0, spec.k, spec.tile_k):
+                if max_tiles is not None and idx >= max_tiles:
+                    return "\n".join(lines) + "\n"
                 k = min(spec.tile_k, spec.k - k0)
                 lines.append(f"Tile_{idx:03d}, {m}, {n}, {k},")
                 idx += 1
     return "\n".join(lines) + "\n"
 
 
-def write_topology_from_spec(spec: MnkTileSpec, topology_csv: Path) -> int:
+def write_topology_from_spec(spec: MnkTileSpec, topology_csv: Path, *, max_tiles: int | None = None) -> int:
     topology_csv.parent.mkdir(parents=True, exist_ok=True)
-    topology_csv.write_text(tiles_to_gemm_csv_from_spec(spec))
-    return spec.expected_tiles
+    topology_csv.write_text(tiles_to_gemm_csv_from_spec(spec, max_tiles=max_tiles))
+    return spec.expected_tiles if max_tiles is None else min(spec.expected_tiles, max_tiles)
 
 
 def default_out_dir(spec: MnkTileSpec) -> Path:

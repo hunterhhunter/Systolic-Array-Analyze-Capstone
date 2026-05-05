@@ -15,35 +15,18 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pyarrow.parquet as pq
 import pytest
+
+pytestmark = pytest.mark.e2e
 
 
 REPO = Path(__file__).resolve().parent.parent
 RESULTS_PARQUET = REPO / "results" / "demo.parquet"
 
-EXPECTED_COLUMNS = [
-    "workload",
-    "m",
-    "n",
-    "k",
-    "tile",
-    "tile_m",
-    "tile_n",
-    "tile_k",
-    "arch",
-    "arch_cfg",
-    "dataflow",
-    "n_tiles",
-    "compute_cycles",
-    "total_cycles",
-    "reuse_aware_cycles",
-    "mean_overall_util_pct",
-    "mean_mapping_eff_pct",
-    "mean_compute_util_pct",
-    "stall",
-    "status",
-]
+from tools.sweep_runner import PARQUET_COLUMNS
+
+
+EXPECTED_COLUMNS = list(PARQUET_COLUMNS)
 EXPECTED_TILES = {"8x8x8", "16x16x16"}
 
 
@@ -85,19 +68,24 @@ def demo_parquet() -> Path:
     return RESULTS_PARQUET
 
 
+def _read_parquet(path: Path):
+    pq = pytest.importorskip("pyarrow.parquet")
+    return pq.read_table(path)
+
+
 def test_parquet_columns_match_schema(demo_parquet):
-    table = pq.read_table(demo_parquet)
+    table = _read_parquet(demo_parquet)
     assert list(table.column_names) == EXPECTED_COLUMNS
 
 
 def test_parquet_has_two_tile_rows(demo_parquet):
-    df = pq.read_table(demo_parquet).to_pandas()
+    df = _read_parquet(demo_parquet).to_pandas()
     assert len(df) == 2
     assert set(df["tile"]) == EXPECTED_TILES
 
 
 def test_walking_skeleton_8x8x8_row_matches_baseline(demo_parquet):
-    df = pq.read_table(demo_parquet).to_pandas()
+    df = _read_parquet(demo_parquet).to_pandas()
     row = df[df["tile"] == "8x8x8"].iloc[0]
     assert row["n_tiles"] == 128
     assert row["compute_cycles"] == 3712
@@ -108,7 +96,7 @@ def test_walking_skeleton_8x8x8_row_matches_baseline(demo_parquet):
 
 
 def test_16x16x16_row_has_fewer_tiles_higher_util(demo_parquet):
-    df = pq.read_table(demo_parquet).to_pandas()
+    df = _read_parquet(demo_parquet).to_pandas()
     big = df[df["tile"] == "16x16x16"].iloc[0]
     small = df[df["tile"] == "8x8x8"].iloc[0]
     # 16-tile 타일은 16개, 8-tile 타일은 128개
@@ -119,5 +107,5 @@ def test_16x16x16_row_has_fewer_tiles_higher_util(demo_parquet):
 
 def test_total_cycles_strictly_greater_than_compute(demo_parquet):
     """L4 invariant: incl. prefetch ≥ compute (모든 row)."""
-    df = pq.read_table(demo_parquet).to_pandas()
+    df = _read_parquet(demo_parquet).to_pandas()
     assert (df["total_cycles"] > df["compute_cycles"]).all()

@@ -26,6 +26,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
+
+from tools.io_utils import write_dataframe_outputs
 from scalesim.scale_config import scale_config
 from scalesim.scale_sim import scalesim
 
@@ -296,10 +298,8 @@ def run_resnet_iree_tiles(
         rows[0]["status"] = "ok"
 
     df = pd.DataFrame(rows)
-    results_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(results_path, index=False)
     csv_path = results_path.with_suffix(".csv")
-    df.to_csv(csv_path, index=False)
+    write_dataframe_outputs(df, results_path, csv_path)
     return df
 
 

@@ -64,19 +64,24 @@ def emit_conv2d_topology(manifest: dict[str, Any]) -> str:
         num_filters = int(shape["num_filters"])
         filter_h, filter_w = int(shape["filter_h"]), int(shape["filter_w"])
         channels = int(shape["channels"])
-        for oh0 in range(0, ofmap_h, tile_oh):
-            actual_oh = min(tile_oh, ofmap_h - oh0)
-            ifmap_h = (actual_oh - 1) * stride_h + filter_h
-            for ow0 in range(0, ofmap_w, tile_ow):
-                actual_ow = min(tile_ow, ofmap_w - ow0)
-                ifmap_w = (actual_ow - 1) * stride_w + filter_w
-                for oc0 in range(0, num_filters, tile_oc):
-                    actual_oc = min(tile_oc, num_filters - oc0)
-                    name = f"{op['name']}_oh{oh0:03d}_ow{ow0:03d}_oc{oc0:04d}"
-                    lines.append(
-                        f"{name}, {ifmap_h}, {ifmap_w}, {filter_h}, {filter_w}, "
-                        f"{channels}, {actual_oc}, {stride_h},"
-                    )
+        batch = int(shape.get("batch", 1))
+        if batch < 1:
+            raise ValueError(f"batch must be >= 1, got {op['name']}: {batch}")
+        for b in range(batch):
+            batch_prefix = f"_b{b:03d}" if batch > 1 else ""
+            for oh0 in range(0, ofmap_h, tile_oh):
+                actual_oh = min(tile_oh, ofmap_h - oh0)
+                ifmap_h = (actual_oh - 1) * stride_h + filter_h
+                for ow0 in range(0, ofmap_w, tile_ow):
+                    actual_ow = min(tile_ow, ofmap_w - ow0)
+                    ifmap_w = (actual_ow - 1) * stride_w + filter_w
+                    for oc0 in range(0, num_filters, tile_oc):
+                        actual_oc = min(tile_oc, num_filters - oc0)
+                        name = f"{op['name']}{batch_prefix}_oh{oh0:03d}_ow{ow0:03d}_oc{oc0:04d}"
+                        lines.append(
+                            f"{name}, {ifmap_h}, {ifmap_w}, {filter_h}, {filter_w}, "
+                            f"{channels}, {actual_oc}, {stride_h},"
+                        )
     return "\n".join(lines) + "\n"
 
 

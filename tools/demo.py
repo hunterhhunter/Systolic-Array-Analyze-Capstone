@@ -18,6 +18,8 @@ def main() -> None:
         output_root=DEMO_DIR,
         clean=True,
         csv_out=RESULTS_CSV,
+        fail_fast=True,
+        require_any_ok=True,
     )
     print(f"\nwrote {RESULTS_PARQUET} ({len(df)} rows x {len(df.columns)} cols)")
     print(f"wrote {RESULTS_CSV}")

@@ -28,9 +28,15 @@ def test_reuse_runner_builds_per_tile_dataframe(walking_compute_report):
         "total_cycles",
         "prefetch_cycles",
         "reuse_aware_cycles",
+        "reuse_aware_cycles_est",
+        "reuse_model",
+        "reuse_fold_fraction",
         "overall_util_pct",
         "mapping_eff_pct",
         "compute_util_pct",
     ]
     assert df.iloc[0]["reuse_aware_cycles"] == 102.0
     assert df.iloc[1]["reuse_aware_cycles"] == 65.5
+    assert df.iloc[0]["reuse_aware_cycles_est"] == df.iloc[0]["reuse_aware_cycles"]
+    assert df.iloc[0]["reuse_model"] == "ws_fold_fraction_placeholder_v1"
+    assert df.iloc[0]["reuse_fold_fraction"] == 0.5

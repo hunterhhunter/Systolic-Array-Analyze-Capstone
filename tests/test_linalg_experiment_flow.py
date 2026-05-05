@@ -12,6 +12,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+pytestmark = pytest.mark.e2e
+
 from tools.emit_scalesim_topology import emit_topology
 from tools.linalg_mlir import parse_linalg_ops, parse_torch_onnx_conv_ops
 

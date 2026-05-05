@@ -17,6 +17,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from tools.io_utils import write_dataframe_outputs
+
 from scalesim.scale_config import scale_config
 from scalesim.scale_sim import scalesim
 
@@ -279,8 +281,7 @@ def run_resnet_baseline(
         arch_cfg=arch_cfg,
         compute_report=report,
     )
-    results_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(results_path, index=False)
+    write_dataframe_outputs(df, results_path, results_path.with_suffix(".csv"))
     return df
 
 

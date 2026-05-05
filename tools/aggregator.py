@@ -22,7 +22,6 @@ import csv
 from pathlib import Path
 from typing import Iterable, Literal, NamedTuple
 
-import pandas as pd
 
 MetricKind = Literal["compute", "total"]
 
@@ -128,12 +127,13 @@ def aggregate(
 
 
 def reuse_correction(
-    tile_records: Iterable[TileRecord], dataflow: str = "ws"
+    tile_records: Iterable[TileRecord], dataflow: str = "ws", fold_fraction: float | None = None
 ) -> list[float]:
-    """Wire to tools.reuse_model — analytic neighbor-tile reuse correction."""
-    from tools.reuse_model import reuse_aware_cycles
+    """Wire to tools.reuse_model — heuristic neighbor-tile reuse correction."""
+    from tools.reuse_model import DEFAULT_FOLD_FRACTION_WS, reuse_aware_cycles
 
-    return reuse_aware_cycles(list(tile_records), dataflow=dataflow)
+    effective_fold = DEFAULT_FOLD_FRACTION_WS if fold_fraction is None else fold_fraction
+    return reuse_aware_cycles(list(tile_records), dataflow=dataflow, fold_fraction=effective_fold)
 
 
 def summarize_compute_report(
@@ -151,6 +151,9 @@ def summarize_compute_report(
     compute = aggregate(records, metric_kind="compute")
     total = aggregate(records, metric_kind="total")
     reuse = reuse_correction(records, dataflow=dataflow)
+    from tools.reuse_model import DEFAULT_FOLD_FRACTION_WS, REUSE_MODEL_NAME
+
+    reuse_sum = float(sum(reuse))
     return {
         "workload": workload or Path(path).parent.name,
         "arch": arch or Path(path).parent.name,
@@ -158,7 +161,11 @@ def summarize_compute_report(
         "n_tiles": compute["n_tiles"],
         "compute_cycles": compute["sum_cycles"],
         "total_cycles": total["sum_cycles"],
-        "reuse_aware_cycles": float(sum(reuse)),
+        "reuse_aware_cycles": reuse_sum,
+        "reuse_aware_cycles_est": reuse_sum,
+        "reuse_model_calibrated": False,
+        "reuse_model": REUSE_MODEL_NAME,
+        "reuse_fold_fraction": DEFAULT_FOLD_FRACTION_WS,
         "mean_overall_util_pct": compute["mean_overall_util_pct"],
         "mean_mapping_eff_pct": compute["mean_mapping_eff_pct"],
         "mean_compute_util_pct": compute["mean_compute_util_pct"],
@@ -182,13 +189,19 @@ def main() -> None:
         workload=args.workload,
         arch=args.arch,
     )
+    import pandas as pd
+
     df = pd.DataFrame([row])
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        if args.format == "parquet":
-            df.to_parquet(args.output, index=False)
-        else:
-            df.to_csv(args.output, index=False)
+        from tools.io_utils import write_dataframe_outputs
+
+        write_dataframe_outputs(
+            df,
+            args.output,
+            None if args.format == "parquet" else args.output,
+            require_parquet=(args.format == "parquet"),
+        )
         print(f"wrote {args.output}")
     print(df.to_string(index=False))
 

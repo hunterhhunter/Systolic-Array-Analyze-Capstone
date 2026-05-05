@@ -7,8 +7,9 @@ from pathlib import Path
 
 import pandas as pd
 
+from tools.io_utils import write_dataframe_outputs
 from tools.aggregator import parse_compute_report, summarize_compute_report
-from tools.reuse_model import reuse_aware_cycles
+from tools.reuse_model import REUSE_MODEL_NAME, reuse_aware_cycles
 
 
 def build_reuse_dataframe(
@@ -30,6 +31,9 @@ def build_reuse_dataframe(
                 "total_cycles": rec.total_cycles_incl_prefetch,
                 "prefetch_cycles": prefetch,
                 "reuse_aware_cycles": reuse_cycles,
+                "reuse_aware_cycles_est": reuse_cycles,
+                "reuse_model": REUSE_MODEL_NAME,
+                "reuse_fold_fraction": fold_fraction,
                 "overall_util_pct": rec.overall_util_pct,
                 "mapping_eff_pct": rec.mapping_eff_pct,
                 "compute_util_pct": rec.compute_util_pct,
@@ -39,11 +43,10 @@ def build_reuse_dataframe(
 
 
 def _write(df: pd.DataFrame, path: Path) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     if path.suffix == ".parquet":
-        df.to_parquet(path, index=False)
+        write_dataframe_outputs(df, path, None, require_parquet=True)
     else:
-        df.to_csv(path, index=False)
+        write_dataframe_outputs(df, path, path)
     print(f"wrote {path}")
 
 
@@ -68,6 +71,7 @@ def main() -> None:
 
     if args.summary_output:
         summary = summarize_compute_report(args.compute_report, dataflow=args.dataflow)
+        summary["reuse_fold_fraction"] = args.fold_fraction
         summary_df = pd.DataFrame([summary])
         _write(summary_df, args.summary_output)
 

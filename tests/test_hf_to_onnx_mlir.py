@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.model
+
 from tools.hf_to_onnx_mlir import (
     _weights_kwargs,
     build_import_command,

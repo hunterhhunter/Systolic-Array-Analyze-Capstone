@@ -1,4 +1,4 @@
-# Runtime dependencies for npu-capston Phase 3-6 pipeline.
+# Runtime dependencies for npu-capstone Phase 3-6 pipeline.
 # Refresh with: make freeze   (requirements.lock 생성 후 비교)
 #
 # Pinning policy:

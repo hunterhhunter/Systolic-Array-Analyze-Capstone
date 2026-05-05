@@ -16,7 +16,9 @@ from typing import Iterable
 from tools.aggregator import TileRecord
 
 
-_FOLD_FRACTION_WS_DEFAULT = 0.5  # placeholder until Phase 6 fit
+REUSE_MODEL_NAME = "ws_fold_fraction_placeholder_v1"
+DEFAULT_FOLD_FRACTION_WS = 0.5  # placeholder until Phase 6 fit
+_FOLD_FRACTION_WS_DEFAULT = DEFAULT_FOLD_FRACTION_WS  # backward-compatible alias
 
 
 def reuse_aware_cycles(
@@ -24,7 +26,10 @@ def reuse_aware_cycles(
     dataflow: str = "ws",
     fold_fraction: float = _FOLD_FRACTION_WS_DEFAULT,
 ) -> list[float]:
-    """Per-tile reuse-aware cycle estimate.
+    """Per-tile heuristic reuse-aware cycle estimate.
+
+    WARNING: this is a placeholder/heuristic model, not a calibrated simulator
+    result. Persist REUSE_MODEL_NAME and fold_fraction with any reported metric.
 
     cycles_i =
         compute_i                                    if i == 0

@@ -1,0 +1,23 @@
+# Keep Docker build context small and reproducible
+.git/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Generated experiment outputs
+outputs/
+results/
+models/
+*.parquet
+*.onnx
+
+# Local/editor noise
+.DS_Store
+.vscode/
+.idea/

@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pytest
 
+pytestmark = pytest.mark.e2e
+
 from tools.aggregator import parse_compute_report
 
 REPO = Path(__file__).resolve().parent.parent
